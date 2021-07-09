@@ -1,5 +1,5 @@
 # Pizzas
-Android app with using Java and SQLite. This app contains information about different types of pizza.
+🍕 Android app with using Java and SQLite. This app contains information about different types of pizza.
 
 In the app you can choose your favorite pizzas. These pizzas will be displayed on the main screen.
 
