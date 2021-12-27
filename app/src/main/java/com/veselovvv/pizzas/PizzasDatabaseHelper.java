@@ -106,6 +106,7 @@ class PizzasDatabaseHelper extends SQLiteOpenHelper {
                     "The Italian community, largely from Milan and Sicily, created the St. Louis-style pizza. " +
                     "Its sweet sauce is reminiscent of the Sicilian influence.", R.drawable.st_louis_pizza);
         }
+        
         if (oldVersion < 2) {
             db.execSQL("ALTER TABLE PIZZA ADD COLUMN FAVORITE NUMERIC;");
         }
