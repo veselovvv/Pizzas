@@ -4,6 +4,7 @@
     <string name="favorite">Favorite</string>
     <string name="favorites">Your favorite pizzas:</string>
     <string name="pizzas_logo">Pizzas logo</string>
+
     <string-array name="list_options">
         <item>Pizzas</item>
     </string-array>
