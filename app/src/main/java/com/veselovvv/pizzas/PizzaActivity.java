@@ -26,8 +26,10 @@ public class PizzaActivity extends Activity {
         int pizzaId = (Integer) getIntent().getExtras().get(EXTRA_PIZZAID);
 
         SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(this);
+        
         try {
             SQLiteDatabase db = pizzasDatabaseHelper.getReadableDatabase();
+            
             Cursor cursor = db.query("PIZZA",
                     new String[]{"NAME", "DESCRIPTION", "IMAGE_RESOURCE_ID", "FAVORITE"},
                     "_id = ?", new String[]{Integer.toString(pizzaId)}, null, null, null);
@@ -51,12 +53,11 @@ public class PizzaActivity extends Activity {
                 CheckBox favorite = (CheckBox)findViewById(R.id.favorite);
                 favorite.setChecked(isFavorite);
             }
+            
             cursor.close();
             db.close();
         } catch (SQLiteException e) {
-            Toast toast = Toast.makeText(this,
-                    "Database unavailable",
-                    Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(this, "Database unavailable", Toast.LENGTH_SHORT);
             toast.show();
         }
     }
@@ -78,13 +79,13 @@ public class PizzaActivity extends Activity {
 
         protected Boolean doInBackground(Integer... pizzas) {
             int pizzaId = pizzas[0];
-            SQLiteOpenHelper pizzasDatabaseHelper =
-                    new PizzasDatabaseHelper(PizzaActivity.this);
+            SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(PizzaActivity.this);
+            
             try {
                 SQLiteDatabase db = pizzasDatabaseHelper.getWritableDatabase();
-                db.update("PIZZA", pizzaValues, "_id = ?",
-                        new String[] {Integer.toString(pizzaId)});
+                db.update("PIZZA", pizzaValues, "_id = ?", new String[] {Integer.toString(pizzaId)});
                 db.close();
+                
                 return true;
             } catch(SQLiteException e) {
                 return false;
@@ -93,8 +94,7 @@ public class PizzaActivity extends Activity {
 
         protected void onPostExecute(Boolean success) {
             if (!success) {
-                Toast toast = Toast.makeText(PizzaActivity.this,
-                        "Database unavailable", Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(PizzaActivity.this, "Database unavailable", Toast.LENGTH_SHORT);
                 toast.show();
             }
         }
