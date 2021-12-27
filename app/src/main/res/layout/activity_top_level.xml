@@ -13,6 +13,7 @@
         android:layout_gravity="center"
         android:scaleType="center"
         android:padding="16dp"
+        android:layout_marginBottom="16dp"
         android:src="@drawable/pizza_logo"
         android:contentDescription="@string/pizzas_logo" />
 
@@ -25,8 +26,11 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/favorites" />
+        android:paddingHorizontal="16dp"
+        android:text="@string/favorites"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:textStyle="italic" />
 
     <ListView
         android:id="@+id/list_favorites"
