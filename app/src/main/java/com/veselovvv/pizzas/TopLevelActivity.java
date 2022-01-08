@@ -38,18 +38,26 @@ public class TopLevelActivity extends Activity {
             }
         };
 
-        ListView listView = (ListView) findViewById(R.id.options);
+        ListView listView = findViewById(R.id.options);
         listView.setOnItemClickListener(itemClickListener);
     }
 
     private void setupFavoritesListView() {
-        ListView listFavorites = (ListView) findViewById(R.id.list_favorites);
+        ListView listFavorites = findViewById(R.id.list_favorites);
         
         try {
             SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(this);
             db = pizzasDatabaseHelper.getReadableDatabase();
             
-            favoritesCursor = db.query("PIZZA", new String[] { "_id", "NAME"}, "FAVORITE = 1", null, null, null, null);
+            favoritesCursor = db.query(
+                "PIZZA",
+                new String[]{"_id", "NAME"},
+                "FAVORITE = 1",
+                null,
+                null,
+                null,
+                null
+            );
 
             CursorAdapter favoriteAdapter = new SimpleCursorAdapter(
                 TopLevelActivity.this,
@@ -61,16 +69,15 @@ public class TopLevelActivity extends Activity {
             );
             
             listFavorites.setAdapter(favoriteAdapter);
-        } catch(SQLiteException e) {
-            Toast toast = Toast.makeText(this, "Database unavailable", Toast.LENGTH_SHORT);
-            toast.show();
+        } catch (SQLiteException e) {
+            Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
         }
 
         listFavorites.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> listView, View v, int position, long id) {
                 Intent intent = new Intent(TopLevelActivity.this, PizzaActivity.class);
-                intent.putExtra(PizzaActivity.EXTRA_PIZZAID, (int)id);
+                intent.putExtra(PizzaActivity.EXTRA_PIZZA_ID, (int)id);
                 startActivity(intent);
             }
         });
@@ -80,9 +87,17 @@ public class TopLevelActivity extends Activity {
     public void onRestart() {
         super.onRestart();
         
-        Cursor newCursor = db.query("PIZZA", new String[] { "_id", "NAME"}, "FAVORITE = 1", null, null, null, null);
+        Cursor newCursor = db.query(
+            "PIZZA",
+            new String[]{"_id", "NAME"},
+            "FAVORITE = 1",
+            null,
+            null,
+            null,
+            null
+        );
         
-        ListView listFavorites = (ListView) findViewById(R.id.list_favorites);
+        ListView listFavorites = findViewById(R.id.list_favorites);
         CursorAdapter adapter = (CursorAdapter) listFavorites.getAdapter();
         adapter.changeCursor(newCursor);
         favoritesCursor = newCursor;

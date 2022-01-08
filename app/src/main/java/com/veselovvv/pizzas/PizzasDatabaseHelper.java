@@ -107,8 +107,6 @@ class PizzasDatabaseHelper extends SQLiteOpenHelper {
                     "Its sweet sauce is reminiscent of the Sicilian influence.", R.drawable.st_louis_pizza);
         }
         
-        if (oldVersion < 2) {
-            db.execSQL("ALTER TABLE PIZZA ADD COLUMN FAVORITE NUMERIC;");
-        }
+        if (oldVersion < 2) db.execSQL("ALTER TABLE PIZZA ADD COLUMN FAVORITE NUMERIC;");
     }
 }
