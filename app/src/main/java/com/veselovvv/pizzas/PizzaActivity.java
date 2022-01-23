@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class PizzaActivity extends Activity {
-
     public static final String EXTRA_PIZZA_ID = "pizzaId";
 
     @Override
@@ -24,29 +23,34 @@ public class PizzaActivity extends Activity {
         setContentView(R.layout.activity_pizza);
 
         int pizzaId = (Integer) getIntent().getExtras().get(EXTRA_PIZZA_ID);
-
         SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(this);
-        
-        try {
-            SQLiteDatabase db = pizzasDatabaseHelper.getReadableDatabase();
-            
-            Cursor cursor = db.query(
-                "PIZZA",
-                new String[]{"NAME", "DESCRIPTION", "IMAGE_RESOURCE_ID", "FAVORITE"},
-                "_id = ?",
-                new String[]{Integer.toString(pizzaId)},
-                null,
-                null,
-                null
-            );
+        tryToMakeQueryOrShowToast(pizzasDatabaseHelper, pizzaId);
+    }
 
-            if (cursor.moveToFirst()) updateUI(cursor);
-            
-            cursor.close();
-            db.close();
+    private void tryToMakeQueryOrShowToast(SQLiteOpenHelper pizzasDatabaseHelper, int pizzaId) {
+        try {
+            makeQuery(pizzasDatabaseHelper, pizzaId);
         } catch (SQLiteException e) {
             Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void makeQuery(SQLiteOpenHelper pizzasDatabaseHelper, int pizzaId) {
+        SQLiteDatabase db = pizzasDatabaseHelper.getReadableDatabase();
+
+        Cursor cursor = db.query(
+            "PIZZA",
+            new String[]{"NAME", "DESCRIPTION", "IMAGE_RESOURCE_ID", "FAVORITE"},
+            "_id = ?",
+            new String[]{Integer.toString(pizzaId)},
+            null,
+            null,
+            null
+        );
+
+        if (cursor.moveToFirst()) updateUI(cursor);
+        cursor.close();
+        db.close();
     }
 
     private void updateUI(Cursor cursor) {
@@ -86,22 +90,26 @@ public class PizzaActivity extends Activity {
         protected Boolean doInBackground(Integer... pizzas) {
             int pizzaId = pizzas[0];
             SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(PizzaActivity.this);
-            
+
             try {
-                SQLiteDatabase db = pizzasDatabaseHelper.getWritableDatabase();
-
-                db.update(
-                    "PIZZA",
-                    pizzaValues,
-                    "_id = ?",
-                    new String[]{Integer.toString(pizzaId)}
-                );
-
-                db.close();
+                updateData(pizzasDatabaseHelper, pizzaId);
                 return true;
             } catch (SQLiteException e) {
                 return false;
             }
+        }
+
+        private void updateData(SQLiteOpenHelper pizzasDatabaseHelper, int pizzaId) {
+            SQLiteDatabase db = pizzasDatabaseHelper.getWritableDatabase();
+
+            db.update(
+                "PIZZA",
+                pizzaValues,
+                "_id = ?",
+                new String[]{Integer.toString(pizzaId)}
+            );
+
+            db.close();
         }
 
         protected void onPostExecute(Boolean success) {

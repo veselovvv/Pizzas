@@ -15,7 +15,6 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 public class TopLevelActivity extends Activity {
-
     private SQLiteDatabase db;
     private Cursor favoritesCursor;
 
@@ -44,34 +43,7 @@ public class TopLevelActivity extends Activity {
 
     private void setupFavoritesListView() {
         ListView listFavorites = findViewById(R.id.list_favorites);
-        
-        try {
-            SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(this);
-            db = pizzasDatabaseHelper.getReadableDatabase();
-            
-            favoritesCursor = db.query(
-                "PIZZA",
-                new String[]{"_id", "NAME"},
-                "FAVORITE = 1",
-                null,
-                null,
-                null,
-                null
-            );
-
-            CursorAdapter favoriteAdapter = new SimpleCursorAdapter(
-                TopLevelActivity.this,
-                android.R.layout.simple_list_item_1,
-                favoritesCursor,
-                new String[]{"NAME"},
-                new int[]{android.R.id.text1}, 
-                0
-            );
-            
-            listFavorites.setAdapter(favoriteAdapter);
-        } catch (SQLiteException e) {
-            Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
-        }
+        tryToMakeQueryOrShowToast(listFavorites);
 
         listFavorites.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -81,6 +53,43 @@ public class TopLevelActivity extends Activity {
                 startActivity(intent);
             }
         });
+    }
+
+    private void tryToMakeQueryOrShowToast(ListView listFavorites) {
+        try {
+            makeQuery();
+            addAdapter(listFavorites);
+        } catch (SQLiteException e) {
+            Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void makeQuery() {
+        SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(this);
+        db = pizzasDatabaseHelper.getReadableDatabase();
+
+        favoritesCursor = db.query(
+            "PIZZA",
+            new String[]{"_id", "NAME"},
+            "FAVORITE = 1",
+            null,
+            null,
+            null,
+            null
+        );
+    }
+
+    private void addAdapter(ListView listFavorites) {
+        CursorAdapter favoriteAdapter = new SimpleCursorAdapter(
+            TopLevelActivity.this,
+            android.R.layout.simple_list_item_1,
+            favoritesCursor,
+            new String[]{"NAME"},
+            new int[]{android.R.id.text1},
+            0
+        );
+
+        listFavorites.setAdapter(favoriteAdapter);
     }
 
     @Override
@@ -106,7 +115,6 @@ public class TopLevelActivity extends Activity {
     @Override
     public void onDestroy(){
         super.onDestroy();
-        
         favoritesCursor.close();
         db.close();
     }
