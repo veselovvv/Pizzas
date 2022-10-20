@@ -2,13 +2,19 @@ package com.veselovvv.pizzas;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+// TODO divide into a few interfaces and classes?
 interface PizzasDatabaseHelper {
-    void updateMyDatabase(SQLiteDatabase db, int oldVersion, int newVersion);
-    void insertPizzas(SQLiteDatabase db);
-    void insertPizza(SQLiteDatabase db, int nameResId, int descriptionResId, int resourceId);
+    void updateMyDatabase(SQLiteDatabase database, int oldVersion, int newVersion);
+    void insertPizzas(SQLiteDatabase database);
+    void insertPizza(SQLiteDatabase database, int nameResId, int descriptionResId, int resourceId);
+    Cursor getMainCursor(SQLiteDatabase database);
+    Cursor getPizzaCursor(SQLiteDatabase database, Integer pizzaId);
+    Cursor getPizzasCategoryCursor(SQLiteDatabase database);
+    void updateDatabase(SQLiteDatabase database, ContentValues pizzaValues, int pizzaId);
 
     class Base extends SQLiteOpenHelper implements PizzasDatabaseHelper {
         private static final String DB_NAME = "pizzas";
@@ -26,81 +32,81 @@ interface PizzasDatabaseHelper {
         }
 
         @Override
-        public void onCreate(SQLiteDatabase db) {
-            updateMyDatabase(db, 0, DB_VERSION);
+        public void onCreate(SQLiteDatabase database) {
+            updateMyDatabase(database, 0, DB_VERSION);
         }
 
         @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            updateMyDatabase(db, oldVersion, newVersion);
+        public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
+            updateMyDatabase(database, oldVersion, newVersion);
         }
 
         @Override
-        public void updateMyDatabase(SQLiteDatabase db, int oldVersion, int newVersion) {
+        public void updateMyDatabase(SQLiteDatabase database, int oldVersion, int newVersion) {
             if (oldVersion < 1) {
-                insertPizzas(db);
-                if (oldVersion < 2) db.execSQL("ALTER TABLE PIZZA ADD COLUMN FAVORITE NUMERIC;");
+                insertPizzas(database);
+                if (oldVersion < 2) database.execSQL("ALTER TABLE PIZZA ADD COLUMN FAVORITE NUMERIC;");
             }
         }
 
         @Override
-        public void insertPizzas(SQLiteDatabase db) {
-            db.execSQL("CREATE TABLE PIZZA (_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        public void insertPizzas(SQLiteDatabase database) {
+            database.execSQL("CREATE TABLE PIZZA (_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + "NAME TEXT, "
                     + "DESCRIPTION TEXT, "
                     + "IMAGE_RESOURCE_ID INTEGER);");
 
             insertPizza(
-                    db,
+                    database,
                     R.string.neapolitan_pizza,
                     R.string.neapolitan_pizza_description,
                     R.drawable.neapolitan_pizza
             );
 
             insertPizza(
-                    db,
+                    database,
                     R.string.chicago_pizza,
                     R.string.chicago_pizza_description,
                     R.drawable.chicago_pizza
             );
 
             insertPizza(
-                    db,
+                    database,
                     R.string.new_york_style_pizza,
                     R.string.new_york_style_pizza_description,
                     R.drawable.new_york_style_pizza
             );
 
             insertPizza(
-                    db,
+                    database,
                     R.string.sicilian_pizza,
                     R.string.sicilian_pizza_description,
                     R.drawable.sicilian_pizza
             );
 
             insertPizza(
-                    db,
+                    database,
                     R.string.greek_pizza,
                     R.string.greek_pizza_description,
                     R.drawable.greek_pizza
             );
 
             insertPizza(
-                    db,
+                    database,
                     R.string.california_pizza,
                     R.string.california_pizza_description,
                     R.drawable.california_pizza
             );
 
             insertPizza(
-                    db,
+                    database,
                     R.string.detroit_pizza,
                     R.string.detroit_pizza_description,
                     R.drawable.detroit_pizza
             );
 
             insertPizza(
-                    db,
+                    database,
                     R.string.st_louis_pizza,
                     R.string.st_louis_pizza_description,
                     R.drawable.st_louis_pizza
@@ -108,12 +114,61 @@ interface PizzasDatabaseHelper {
         }
 
         @Override
-        public void insertPizza(SQLiteDatabase db, int nameResId, int descriptionResId, int resourceId) {
+        public void insertPizza(SQLiteDatabase database, int nameResId, int descriptionResId, int resourceId) {
             ContentValues pizzaValues = new ContentValues();
             pizzaValues.put(NAME_KEY, context.getString(nameResId));
             pizzaValues.put(DESCRIPTION_KEY, context.getString(descriptionResId));
             pizzaValues.put(IMAGE_RESOURCE_ID_KEY, resourceId);
-            db.insert(TABLE_NAME, null, pizzaValues);
+            database.insert(TABLE_NAME, null, pizzaValues);
+        }
+
+        @Override
+        public Cursor getMainCursor(SQLiteDatabase database) {
+            return database.query(
+                    TABLE_NAME,
+                    new String[]{"_id", "NAME"},
+                    "FAVORITE = 1",
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        @Override
+        public Cursor getPizzaCursor(SQLiteDatabase database, Integer pizzaId) {
+            return database.query(
+                    TABLE_NAME,
+                    new String[]{"NAME", "DESCRIPTION", "IMAGE_RESOURCE_ID", "FAVORITE"},
+                    "_id = ?",
+                    new String[]{Integer.toString(pizzaId)},
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        @Override
+        public Cursor getPizzasCategoryCursor(SQLiteDatabase database) {
+            return database.query(
+                    TABLE_NAME,
+                    new String[]{"_id", "NAME"},
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        @Override
+        public void updateDatabase(SQLiteDatabase database, ContentValues pizzaValues, int pizzaId) {
+            database.update(
+                    TABLE_NAME,
+                    pizzaValues,
+                    "_id = ?",
+                    new String[]{Integer.toString(pizzaId)}
+            );
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.veselovvv.pizzas;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,11 +10,9 @@ import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-import android.widget.Toast;
 
-public class TopLevelActivity extends Activity {
-    private static final String TABLE_NAME = "PIZZA";
-
+public class TopLevelActivity extends BaseActivity {
+    private PizzasDatabaseHelper.Base pizzasDatabaseHelper;
     private SQLiteDatabase database;
     private Cursor favoritesCursor;
 
@@ -23,6 +20,8 @@ public class TopLevelActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top_level);
+
+        pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this); //TODO dry
 
         setupOptionsListView();
         setupFavoritesListView();
@@ -47,8 +46,8 @@ public class TopLevelActivity extends Activity {
         ListView listFavorites = findViewById(R.id.list_favorites);
 
         try {
-            database = new PizzasDatabaseHelper.Base(this).getReadableDatabase();
-            favoritesCursor = getCursor(database);
+            database = pizzasDatabaseHelper.getReadableDatabase(); //TODO dry
+            favoritesCursor = pizzasDatabaseHelper.getMainCursor(database);
             listFavorites.setAdapter(
                     new SimpleCursorAdapter(
                             TopLevelActivity.this,
@@ -60,7 +59,7 @@ public class TopLevelActivity extends Activity {
                     )
             );
         } catch (SQLiteException e) {
-            Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
+            showDatabaseUnavailableToast(this);
         }
 
         listFavorites.setOnItemClickListener(
@@ -75,23 +74,11 @@ public class TopLevelActivity extends Activity {
         );
     }
 
-    Cursor getCursor(SQLiteDatabase database) {
-        return database.query(
-                TABLE_NAME,
-                new String[]{"_id", "NAME"},
-                "FAVORITE = 1",
-                null,
-                null,
-                null,
-                null
-        );
-    }
-
     @Override
     public void onRestart() {
         super.onRestart();
 
-        Cursor newCursor = getCursor(database);
+        Cursor newCursor = pizzasDatabaseHelper.getMainCursor(database);
         ListView listFavorites = findViewById(R.id.list_favorites);
         CursorAdapter adapter = (CursorAdapter) listFavorites.getAdapter();
         adapter.changeCursor(newCursor);

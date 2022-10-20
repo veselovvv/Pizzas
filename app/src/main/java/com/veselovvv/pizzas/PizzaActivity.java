@@ -1,22 +1,17 @@
 package com.veselovvv.pizzas;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class PizzaActivity extends Activity {
-    public static final String EXTRA_PIZZA_ID = "pizzaId"; // TODO make private
-    private static final String TABLE_NAME = "PIZZA"; // TODO dry
+public class PizzaActivity extends BaseActivity {
     private static final String FAVORITE_KEY = "FAVORITE";
 
     @Override
@@ -24,25 +19,17 @@ public class PizzaActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pizza);
 
-        SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this);
+        PizzasDatabaseHelper.Base pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this); // TODO dry
 
         try {
-            SQLiteDatabase database = pizzasDatabaseHelper.getReadableDatabase();
-            Cursor cursor = database.query(
-                    TABLE_NAME,
-                    new String[]{"NAME", "DESCRIPTION", "IMAGE_RESOURCE_ID", "FAVORITE"},
-                    "_id = ?",
-                    new String[]{Integer.toString(getPizzaId())},
-                    null,
-                    null,
-                    null
-            );
+            SQLiteDatabase database = pizzasDatabaseHelper.getReadableDatabase(); // TODO dry
+            Cursor cursor = pizzasDatabaseHelper.getPizzaCursor(database, getPizzaId());
 
             if (cursor.moveToFirst()) updateUI(cursor);
             cursor.close();
             database.close();
         } catch (SQLiteException e) {
-            Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
+            showDatabaseUnavailableToast(this);
         }
     }
 
@@ -85,16 +72,11 @@ public class PizzaActivity extends Activity {
 
         protected Boolean doInBackground(Integer... pizzas) {
             int pizzaId = pizzas[0];
-            SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(PizzaActivity.this);
+            PizzasDatabaseHelper.Base pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(PizzaActivity.this); // TODO dry
 
             try {
                 SQLiteDatabase database = pizzasDatabaseHelper.getWritableDatabase();
-                database.update(
-                        TABLE_NAME,
-                        pizzaValues,
-                        "_id = ?",
-                        new String[]{Integer.toString(pizzaId)}
-                );
+                pizzasDatabaseHelper.updateDatabase(database, pizzaValues, pizzaId);
                 database.close();
                 return true;
             } catch (SQLiteException e) {
@@ -103,8 +85,7 @@ public class PizzaActivity extends Activity {
         }
 
         protected void onPostExecute(Boolean success) {
-            if (!success)
-                Toast.makeText(PizzaActivity.this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
+            if (!success) showDatabaseUnavailableToast(PizzaActivity.this);
         }
     }
 }

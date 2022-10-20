@@ -1,6 +1,5 @@
 package com.veselovvv.pizzas;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,11 +10,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
-import android.widget.Toast;
 
-public class PizzasCategoryActivity extends Activity {
-    private static final String TABLE_NAME = "PIZZA"; // TODO dry
-
+public class PizzasCategoryActivity extends BaseActivity {
     private SQLiteDatabase database;
     private Cursor cursor;
 
@@ -25,19 +21,11 @@ public class PizzasCategoryActivity extends Activity {
         setContentView(R.layout.activity_pizzas_category);
 
         ListView listPizzas = findViewById(R.id.list_pizzas);
-        SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this); // TODO here and in other activities make a one instance
+        PizzasDatabaseHelper.Base pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this); // TODO dry
 
         try {
-            database = pizzasDatabaseHelper.getReadableDatabase();
-            cursor = database.query(
-                    TABLE_NAME,
-                    new String[]{"_id", "NAME"},
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-            );
+            database = pizzasDatabaseHelper.getReadableDatabase(); // TODO dry
+            cursor = pizzasDatabaseHelper.getPizzasCategoryCursor(database);
             listPizzas.setAdapter(
                     new SimpleCursorAdapter(
                             this,
@@ -49,7 +37,7 @@ public class PizzasCategoryActivity extends Activity {
                     )
             );
         } catch (SQLiteException e) {
-            Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
+            showDatabaseUnavailableToast(this);
         }
 
         listPizzas.setOnItemClickListener(
