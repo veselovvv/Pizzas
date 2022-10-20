@@ -14,7 +14,9 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 
 public class PizzasCategoryActivity extends Activity {
-    private SQLiteDatabase db;
+    private static final String TABLE_NAME = "PIZZA"; // TODO dry
+
+    private SQLiteDatabase database;
     private Cursor cursor;
 
     @Override
@@ -23,61 +25,49 @@ public class PizzasCategoryActivity extends Activity {
         setContentView(R.layout.activity_pizzas_category);
 
         ListView listPizzas = findViewById(R.id.list_pizzas);
-        SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(this);
-        tryToMakeQueryOrShowToast(pizzasDatabaseHelper, listPizzas);
+        SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this); // TODO here and in other activities make a one instance
 
-        AdapterView.OnItemClickListener itemClickListener =
-            new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> listPizzas, View itemView, int position, long id) {
-                    Intent intent = new Intent(PizzasCategoryActivity.this, PizzaActivity.class);
-                    intent.putExtra(PizzaActivity.EXTRA_PIZZA_ID, (int) id);
-                    startActivity(intent);
-                }
-            };
-
-        listPizzas.setOnItemClickListener(itemClickListener);
-    }
-
-    private void tryToMakeQueryOrShowToast(SQLiteOpenHelper pizzasDatabaseHelper, ListView listPizzas) {
         try {
-            makeQuery(pizzasDatabaseHelper);
-            addAdapter(listPizzas);
+            database = pizzasDatabaseHelper.getReadableDatabase();
+            cursor = database.query(
+                    TABLE_NAME,
+                    new String[]{"_id", "NAME"},
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            );
+            listPizzas.setAdapter(
+                    new SimpleCursorAdapter(
+                            this,
+                            android.R.layout.simple_list_item_1,
+                            cursor,
+                            new String[]{"NAME"},
+                            new int[]{android.R.id.text1},
+                            0
+                    )
+            );
         } catch (SQLiteException e) {
             Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
         }
-    }
 
-    private void makeQuery(SQLiteOpenHelper pizzasDatabaseHelper) {
-        db = pizzasDatabaseHelper.getReadableDatabase();
-
-        cursor = db.query(
-            "PIZZA",
-            new String[]{"_id", "NAME"},
-            null,
-            null,
-            null,
-            null,
-            null
+        listPizzas.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> listPizzas, View itemView, int position, long id) {
+                        Intent intent = new Intent(PizzasCategoryActivity.this, PizzaActivity.class);
+                        intent.putExtra(PizzaActivity.EXTRA_PIZZA_ID, (int) id);
+                        startActivity(intent);
+                    }
+                }
         );
-    }
-
-    private void addAdapter(ListView listPizzas) {
-        SimpleCursorAdapter listAdapter = new SimpleCursorAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            cursor,
-            new String[]{"NAME"},
-            new int[]{android.R.id.text1},
-            0
-        );
-
-        listPizzas.setAdapter(listAdapter);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         cursor.close();
-        db.close();
+        database.close();
     }
 }

@@ -15,67 +15,63 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class PizzaActivity extends Activity {
-    public static final String EXTRA_PIZZA_ID = "pizzaId";
+    public static final String EXTRA_PIZZA_ID = "pizzaId"; // TODO make private
+    private static final String TABLE_NAME = "PIZZA"; // TODO dry
+    private static final String FAVORITE_KEY = "FAVORITE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pizza);
 
-        int pizzaId = (Integer) getIntent().getExtras().get(EXTRA_PIZZA_ID);
-        SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(this);
-        tryToMakeQueryOrShowToast(pizzasDatabaseHelper, pizzaId);
-    }
+        SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this);
 
-    private void tryToMakeQueryOrShowToast(SQLiteOpenHelper pizzasDatabaseHelper, int pizzaId) {
         try {
-            makeQuery(pizzasDatabaseHelper, pizzaId);
+            SQLiteDatabase database = pizzasDatabaseHelper.getReadableDatabase();
+            Cursor cursor = database.query(
+                    TABLE_NAME,
+                    new String[]{"NAME", "DESCRIPTION", "IMAGE_RESOURCE_ID", "FAVORITE"},
+                    "_id = ?",
+                    new String[]{Integer.toString(getPizzaId())},
+                    null,
+                    null,
+                    null
+            );
+
+            if (cursor.moveToFirst()) updateUI(cursor);
+            cursor.close();
+            database.close();
         } catch (SQLiteException e) {
             Toast.makeText(this, R.string.database_unavailable, Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void makeQuery(SQLiteOpenHelper pizzasDatabaseHelper, int pizzaId) {
-        SQLiteDatabase db = pizzasDatabaseHelper.getReadableDatabase();
-
-        Cursor cursor = db.query(
-            "PIZZA",
-            new String[]{"NAME", "DESCRIPTION", "IMAGE_RESOURCE_ID", "FAVORITE"},
-            "_id = ?",
-            new String[]{Integer.toString(pizzaId)},
-            null,
-            null,
-            null
-        );
-
-        if (cursor.moveToFirst()) updateUI(cursor);
-        cursor.close();
-        db.close();
+    Integer getPizzaId() {
+        return (Integer) getIntent().getExtras().get(EXTRA_PIZZA_ID);
     }
 
-    private void updateUI(Cursor cursor) {
+    void updateUI(Cursor cursor) {
         String nameText = cursor.getString(0);
         String descriptionText = cursor.getString(1);
         int photoId = cursor.getInt(2);
         boolean isFavorite = (cursor.getInt(3) == 1);
 
-        TextView name = findViewById(R.id.name);
-        name.setText(nameText);
+        TextView nameTextView = findViewById(R.id.name);
+        nameTextView.setText(nameText);
 
-        TextView description = findViewById(R.id.description);
-        description.setText(descriptionText);
+        TextView descriptionTextView = findViewById(R.id.description);
+        descriptionTextView.setText(descriptionText);
 
-        ImageView photo = findViewById(R.id.photo);
-        photo.setImageResource(photoId);
-        photo.setContentDescription(nameText);
+        ImageView photoImageView = findViewById(R.id.photo);
+        photoImageView.setImageResource(photoId);
+        photoImageView.setContentDescription(nameText);
 
-        CheckBox favorite = findViewById(R.id.favorite);
-        favorite.setChecked(isFavorite);
+        CheckBox favoriteCheckBox = findViewById(R.id.favorite);
+        favoriteCheckBox.setChecked(isFavorite);
     }
 
     public void onFavoriteClicked(View view) {
-        int pizzaId = (Integer) getIntent().getExtras().get(EXTRA_PIZZA_ID);
-        new UpdatePizzaTask().execute(pizzaId);
+        new UpdatePizzaTask().execute(getPizzaId());
     }
 
     private class UpdatePizzaTask extends AsyncTask<Integer, Void, Boolean> {
@@ -84,32 +80,26 @@ public class PizzaActivity extends Activity {
         protected void onPreExecute() {
             CheckBox favorite = findViewById(R.id.favorite);
             pizzaValues = new ContentValues();
-            pizzaValues.put("FAVORITE", favorite.isChecked());
+            pizzaValues.put(FAVORITE_KEY, favorite.isChecked());
         }
 
         protected Boolean doInBackground(Integer... pizzas) {
             int pizzaId = pizzas[0];
-            SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper(PizzaActivity.this);
+            SQLiteOpenHelper pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(PizzaActivity.this);
 
             try {
-                updateData(pizzasDatabaseHelper, pizzaId);
+                SQLiteDatabase database = pizzasDatabaseHelper.getWritableDatabase();
+                database.update(
+                        TABLE_NAME,
+                        pizzaValues,
+                        "_id = ?",
+                        new String[]{Integer.toString(pizzaId)}
+                );
+                database.close();
                 return true;
             } catch (SQLiteException e) {
                 return false;
             }
-        }
-
-        private void updateData(SQLiteOpenHelper pizzasDatabaseHelper, int pizzaId) {
-            SQLiteDatabase db = pizzasDatabaseHelper.getWritableDatabase();
-
-            db.update(
-                "PIZZA",
-                pizzaValues,
-                "_id = ?",
-                new String[]{Integer.toString(pizzaId)}
-            );
-
-            db.close();
         }
 
         protected void onPostExecute(Boolean success) {
