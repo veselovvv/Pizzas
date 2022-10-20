@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,10 +20,10 @@ public class PizzasCategoryActivity extends BaseActivity {
         setContentView(R.layout.activity_pizzas_category);
 
         ListView listPizzas = findViewById(R.id.list_pizzas);
-        PizzasDatabaseHelper.Base pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this); // TODO dry
+        PizzasDatabaseHelper.Base pizzasDatabaseHelper = ((PizzasApp) getApplication()).getPizzasDatabaseHelper();
 
         try {
-            database = pizzasDatabaseHelper.getReadableDatabase(); // TODO dry
+            database = ((PizzasApp) getApplication()).getReadableDatabase();
             cursor = pizzasDatabaseHelper.getPizzasCategoryCursor(database);
             listPizzas.setAdapter(
                     new SimpleCursorAdapter(

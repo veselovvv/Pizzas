@@ -21,7 +21,7 @@ public class TopLevelActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top_level);
 
-        pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this); //TODO dry
+        pizzasDatabaseHelper = ((PizzasApp) getApplication()).getPizzasDatabaseHelper();
 
         setupOptionsListView();
         setupFavoritesListView();
@@ -46,7 +46,7 @@ public class TopLevelActivity extends BaseActivity {
         ListView listFavorites = findViewById(R.id.list_favorites);
 
         try {
-            database = pizzasDatabaseHelper.getReadableDatabase(); //TODO dry
+            database = ((PizzasApp) getApplication()).getReadableDatabase();
             favoritesCursor = pizzasDatabaseHelper.getMainCursor(database);
             listFavorites.setAdapter(
                     new SimpleCursorAdapter(
@@ -78,6 +78,7 @@ public class TopLevelActivity extends BaseActivity {
     public void onRestart() {
         super.onRestart();
 
+        if (!database.isOpen()) database = ((PizzasApp) getApplication()).getReadableDatabase();
         Cursor newCursor = pizzasDatabaseHelper.getMainCursor(database);
         ListView listFavorites = findViewById(R.id.list_favorites);
         CursorAdapter adapter = (CursorAdapter) listFavorites.getAdapter();

@@ -6,11 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-// TODO divide into a few interfaces and classes?
 interface PizzasDatabaseHelper {
-    void updateMyDatabase(SQLiteDatabase database, int oldVersion, int newVersion);
-    void insertPizzas(SQLiteDatabase database);
-    void insertPizza(SQLiteDatabase database, int nameResId, int descriptionResId, int resourceId);
     Cursor getMainCursor(SQLiteDatabase database);
     Cursor getPizzaCursor(SQLiteDatabase database, Integer pizzaId);
     Cursor getPizzasCategoryCursor(SQLiteDatabase database);
@@ -41,7 +37,6 @@ interface PizzasDatabaseHelper {
             updateMyDatabase(database, oldVersion, newVersion);
         }
 
-        @Override
         public void updateMyDatabase(SQLiteDatabase database, int oldVersion, int newVersion) {
             if (oldVersion < 1) {
                 insertPizzas(database);
@@ -49,7 +44,6 @@ interface PizzasDatabaseHelper {
             }
         }
 
-        @Override
         public void insertPizzas(SQLiteDatabase database) {
             database.execSQL("CREATE TABLE PIZZA (_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + "NAME TEXT, "
@@ -113,7 +107,6 @@ interface PizzasDatabaseHelper {
             );
         }
 
-        @Override
         public void insertPizza(SQLiteDatabase database, int nameResId, int descriptionResId, int resourceId) {
             ContentValues pizzaValues = new ContentValues();
             pizzaValues.put(NAME_KEY, context.getString(nameResId));

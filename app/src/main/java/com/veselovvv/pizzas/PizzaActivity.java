@@ -19,10 +19,10 @@ public class PizzaActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pizza);
 
-        PizzasDatabaseHelper.Base pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(this); // TODO dry
+        PizzasDatabaseHelper.Base pizzasDatabaseHelper = ((PizzasApp) getApplication()).getPizzasDatabaseHelper();
 
         try {
-            SQLiteDatabase database = pizzasDatabaseHelper.getReadableDatabase(); // TODO dry
+            SQLiteDatabase database = ((PizzasApp) getApplication()).getReadableDatabase();
             Cursor cursor = pizzasDatabaseHelper.getPizzaCursor(database, getPizzaId());
 
             if (cursor.moveToFirst()) updateUI(cursor);
@@ -72,7 +72,7 @@ public class PizzaActivity extends BaseActivity {
 
         protected Boolean doInBackground(Integer... pizzas) {
             int pizzaId = pizzas[0];
-            PizzasDatabaseHelper.Base pizzasDatabaseHelper = new PizzasDatabaseHelper.Base(PizzaActivity.this); // TODO dry
+            PizzasDatabaseHelper.Base pizzasDatabaseHelper = ((PizzasApp) getApplication()).getPizzasDatabaseHelper();
 
             try {
                 SQLiteDatabase database = pizzasDatabaseHelper.getWritableDatabase();
